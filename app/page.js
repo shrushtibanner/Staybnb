@@ -61,12 +61,12 @@ export default function Home() {
               <strong>Add guests</strong>
             </span>
           </label>
-          <button className="header-search-button" type="button" aria-label="Search">
+          <Link className="header-search-button" href="/search" aria-label="Search">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="m16 16 4 4" />
             </svg>
-          </button>
+          </Link>
         </form>
       </header>
 
@@ -75,14 +75,14 @@ export default function Home() {
           <img className="hero-art" src="/hero-stay-illustration.png" alt="Vacation home with travel luggage" />
 
           <div className="signpost" aria-label="Travel categories">
-            <a href="#stays">
+            <Link href="/search">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m3 10 9-7 9 7" />
                 <path d="M5 9v11h14V9" />
                 <path d="M9 20v-6h6v6" />
               </svg>
               Find Stays
-            </a>
+            </Link>
             <a href="#places">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 5v15l5-3 6 3 5-3V2l-5 3-6-3-5 3Z" />

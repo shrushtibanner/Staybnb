@@ -2,7 +2,7 @@ import { createInterface } from "node:readline";
 import { createReadStream } from "node:fs";
 import { spawnSync } from "node:child_process";
 
-const projectId = process.env.FIREBASE_PROJECT_ID || "staybnb-20260725";
+const projectId = process.env.FIREBASE_PROJECT_ID || "airbnb-2395c";
 const databaseId = process.env.FIRESTORE_DATABASE_ID || "(default)";
 const collection = process.env.FIRESTORE_COLLECTION || "listings";
 const inputFile = process.env.LISTINGS_CSV || "Listing.csv";
