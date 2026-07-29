@@ -19,7 +19,7 @@ function cleanText(value, fallback = "Not available") {
   return text || fallback;
 }
 
-function getListings(limit = 24) {
+function getListings() {
   if (!existsSync(listingFile)) return [];
 
   const lines = readFileSync(listingFile, "utf8").split(/\r?\n/).filter(Boolean);
@@ -48,8 +48,6 @@ function getListings(limit = 24) {
       host: cleanText(row.host_name, "Host"),
       listingUrl: row.listing_url || "#"
     });
-
-    if (listings.length >= limit) break;
   }
 
   return listings;
