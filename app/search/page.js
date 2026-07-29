@@ -19,14 +19,27 @@ function cleanText(value, fallback = "Not available") {
   return text || fallback;
 }
 
-function getListings() {
-  if (!existsSync(listingFile)) return [];
+const pageSize = 60;
+
+function getListings(page = 1) {
+  if (!existsSync(listingFile)) {
+    return {
+      listings: [],
+      totalListings: 0,
+      totalPages: 1
+    };
+  }
 
   const lines = readFileSync(listingFile, "utf8").split(/\r?\n/).filter(Boolean);
   const headers = lines[0].split("\t");
+  const totalListings = Math.max(lines.length - 1, 0);
+  const totalPages = Math.max(Math.ceil(totalListings / pageSize), 1);
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+  const start = 1 + (currentPage - 1) * pageSize;
+  const end = start + pageSize;
   const listings = [];
 
-  for (const line of lines.slice(1)) {
+  for (const line of lines.slice(start, end)) {
     const values = line.split("\t");
     const row = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
     const image = row.picture_url || row.medium_url || row.thumbnail_url || "/hero-stay-illustration.png";
@@ -50,11 +63,20 @@ function getListings() {
     });
   }
 
-  return listings;
+  return {
+    listings,
+    totalListings,
+    totalPages,
+    currentPage
+  };
 }
 
-export default function SearchPage() {
-  const listings = getListings();
+export default async function SearchPage({ searchParams }) {
+  const params = await searchParams;
+  const requestedPage = Number(params?.page || 1);
+  const { listings, totalListings, totalPages, currentPage } = getListings(requestedPage);
+  const previousPage = Math.max(currentPage - 1, 1);
+  const nextPage = Math.min(currentPage + 1, totalPages);
 
   return (
     <div className="search-shell">
@@ -72,11 +94,25 @@ export default function SearchPage() {
         <div className="search-heading">
           <p>AirBNB Firebase project: airbnb-2395c</p>
           <h1>Search stays</h1>
-          <span>{listings.length} listings loaded with photos and details</span>
+          <span>
+            Showing {listings.length} of {totalListings} listings with photos and details
+          </span>
         </div>
       </header>
 
       <main className="search-main">
+        <div className="search-pagination" aria-label="Listing pages">
+          <Link className={currentPage === 1 ? "is-disabled" : ""} href={`/search?page=${previousPage}`}>
+            Previous
+          </Link>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Link className={currentPage === totalPages ? "is-disabled" : ""} href={`/search?page=${nextPage}`}>
+            Next
+          </Link>
+        </div>
+
         <div className="listing-grid" aria-label="Stay listings">
           {listings.map((listing) => (
             <article className="listing-card" key={listing.id}>
@@ -123,6 +159,18 @@ export default function SearchPage() {
               </div>
             </article>
           ))}
+        </div>
+
+        <div className="search-pagination" aria-label="Listing pages">
+          <Link className={currentPage === 1 ? "is-disabled" : ""} href={`/search?page=${previousPage}`}>
+            Previous
+          </Link>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Link className={currentPage === totalPages ? "is-disabled" : ""} href={`/search?page=${nextPage}`}>
+            Next
+          </Link>
         </div>
       </main>
     </div>

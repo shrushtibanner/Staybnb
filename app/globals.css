@@ -731,7 +731,42 @@ body {
 }
 
 .search-main {
+  display: grid;
+  gap: 24px;
   padding: 28px 52px 56px;
+}
+
+.search-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.search-pagination a,
+.search-pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #ffd0d4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #ff385c;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.search-pagination span {
+  border-color: #eeeeee;
+  color: #222222;
+}
+
+.search-pagination a.is-disabled {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 .listing-grid {
