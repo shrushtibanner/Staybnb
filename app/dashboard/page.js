@@ -263,7 +263,6 @@ export default function DashboardPage() {
             <Link href="/dashboard" aria-current="page">
               My dashboard
             </Link>
-            <button type="button">Become a host</button>
           </nav>
         </div>
 

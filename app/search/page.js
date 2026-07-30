@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
+import ListingPhoto from "./ListingPhoto";
 
 export const metadata = {
   title: "Search stays | Staybnb",
@@ -8,6 +9,18 @@ export const metadata = {
 };
 
 const listingFile = join(process.cwd(), "Listing.csv");
+const fallbackListingPhotos = [
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267f?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80"
+];
 
 function parseMoney(value) {
   const number = Number(String(value || "").replace(/[$,\s]/g, ""));
@@ -17,6 +30,36 @@ function parseMoney(value) {
 function cleanText(value, fallback = "Not available") {
   const text = String(value || "").trim();
   return text || fallback;
+}
+
+function normalizeImageUrl(value) {
+  const rawUrl = String(value || "").trim();
+
+  if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
+    return null;
+  }
+
+  try {
+    const url = new URL(rawUrl);
+
+    if (url.hostname.endsWith("muscache.com")) {
+      return null;
+    }
+
+    return rawUrl;
+  } catch {
+    return null;
+  }
+}
+
+function getListingImage(row) {
+  const candidates = [row.xl_picture_url, row.picture_url, row.medium_url, row.thumbnail_url];
+  return candidates.map(normalizeImageUrl).find(Boolean) || null;
+}
+
+function getFallbackImage(row, index) {
+  const seed = Number(row.id) || index;
+  return fallbackListingPhotos[Math.abs(seed) % fallbackListingPhotos.length];
 }
 
 const pageSize = 60;
@@ -39,15 +82,19 @@ function getListings(page = 1) {
   const end = start + pageSize;
   const listings = [];
 
-  for (const line of lines.slice(start, end)) {
+  for (const [index, line] of lines.slice(start, end).entries()) {
     const values = line.split("\t");
     const row = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
-    const image = row.picture_url || row.medium_url || row.thumbnail_url || "/hero-stay-illustration.png";
+    const image = getListingImage(row);
+    const id = cleanText(row.id, `${currentPage}-${index}`);
+    const fallbackImage = getFallbackImage(row, start + index);
 
     listings.push({
-      id: row.id,
+      key: `${currentPage}-${index}-${id}`,
+      id,
       name: cleanText(row.name, "Staybnb listing"),
       image,
+      fallbackImage,
       city: cleanText(row.city, "Seattle"),
       neighbourhood: cleanText(row.neighbourhood_cleansed || row.neighbourhood, "Neighbourhood"),
       propertyType: cleanText(row.property_type),
@@ -115,9 +162,15 @@ export default async function SearchPage({ searchParams }) {
 
         <div className="listing-grid" aria-label="Stay listings">
           {listings.map((listing) => (
-            <article className="listing-card" key={listing.id}>
-              <a className="listing-image-link" href={listing.listingUrl} target="_blank" rel="noreferrer">
-                <img src={listing.image} alt={listing.name} />
+            <article className="listing-card" key={listing.key}>
+              <a
+                className="listing-image-link"
+                href={listing.listingUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={listing.name}
+              >
+                <ListingPhoto alt={listing.name} primarySrc={listing.image} fallbackSrc={listing.fallbackImage} />
               </a>
 
               <div className="listing-card-body">
